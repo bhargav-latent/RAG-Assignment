@@ -1,0 +1,29 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Data (large files)
+data/
+*.pdf
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude
+.claude/
