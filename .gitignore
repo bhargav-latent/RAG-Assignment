@@ -34,3 +34,4 @@ Thumbs.db
 # UV lock (regenerated)
 uv.lock
 *.egg-info/
+.python-version
