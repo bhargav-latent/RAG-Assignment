@@ -18,7 +18,7 @@ sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 load_dotenv(Path(__file__).parent.parent / ".env")
 
 from config import (
-    ROOT_DIR, DATA_DIR, IMAGES_DIR, MARKDOWN_DIR,
+    ROOT_DIR, DATA_DIR, IMAGES_DIR, PAPERS_DIR,
     NVAI_URL, MODEL, MAX_PARALLEL, TIMEOUT, DPI
 )
 from pdf_to_images import convert_pdf_to_images
@@ -148,51 +148,34 @@ async def process_batch(session, batch, api_key):
     return await asyncio.gather(*tasks)
 
 
-def save_page_markdown(page_num, markdown, detected_images, page_image_path,
-                       markdown_dir, figures_dir):
-    """Save markdown with cropped figure references."""
-    md_path = markdown_dir / f"page_{page_num:04d}.md"
+def extract_figures(page_num, detected_images, page_image_path, figures_dir):
+    """Extract and save figures from a page (no individual page files)."""
     num_figures = 0
 
-    with open(md_path, "w", encoding="utf-8") as f:
-        f.write(f"<!-- Page {page_num} -->\n\n")
+    for i, img_info in enumerate(detected_images):
+        bbox = img_info.get("bbox")
+        if bbox:
+            fig_name = f"page_{page_num:04d}_fig_{i+1:02d}.png"
+            fig_path = figures_dir / fig_name
+            if crop_image(page_image_path, bbox, fig_path):
+                num_figures += 1
 
-        # Extract and save detected images
-        for i, img_info in enumerate(detected_images):
-            bbox = img_info.get("bbox")
-            img_type = img_info.get("type", "figure")
-            caption = img_info.get("caption", "")
-
-            if bbox:
-                fig_name = f"page_{page_num:04d}_fig_{i+1:02d}.png"
-                fig_path = figures_dir / fig_name
-
-                if crop_image(page_image_path, bbox, fig_path):
-                    rel_path = os.path.relpath(fig_path, markdown_dir)
-                    f.write(f"![{img_type} {i+1}]({rel_path})\n")
-                    if caption:
-                        f.write(f"*{caption}*\n")
-                    f.write("\n")
-                    num_figures += 1
-
-        if detected_images:
-            f.write("---\n\n")
-
-        # Write extracted text
-        if markdown:
-            f.write(markdown)
-
-    return md_path, num_figures
+    return num_figures
 
 
-def save_combined_markdown(pages_data, markdown_dir, figures_dir, pdf_name):
+def save_page_markdown(page_num, markdown, detected_images, page_image_path,
+                       paper_dir, figures_dir):
+    """Legacy function - extracts figures only (no page files created)."""
+    num_figures = extract_figures(page_num, detected_images, page_image_path, figures_dir)
+    return None, num_figures
+
+
+def save_combined_markdown(pages_data, paper_dir, figures_dir, pdf_name):
     """Save all pages into a single markdown file."""
-    combined_path = markdown_dir / f"{pdf_name}_combined.md"
+    combined_path = paper_dir / "document.md"
 
     with open(combined_path, "w", encoding="utf-8") as f:
         f.write(f"# {pdf_name}\n\n")
-        f.write("*Extracted using NVIDIA Nemotron-Parse*\n\n")
-        f.write("---\n\n")
 
         for page_num, markdown, detected_images, _ in pages_data:
             f.write(f"## Page {page_num}\n\n")
@@ -203,7 +186,7 @@ def save_combined_markdown(pages_data, markdown_dir, figures_dir, pdf_name):
                 fig_path = figures_dir / fig_name
 
                 if fig_path.exists():
-                    rel_path = os.path.relpath(fig_path, markdown_dir)
+                    rel_path = os.path.relpath(fig_path, paper_dir)
                     img_type = img_info.get("type", "figure")
                     caption = img_info.get("caption", "")
                     f.write(f"![{img_type} {i+1}]({rel_path})\n")
@@ -225,12 +208,12 @@ async def run_pipeline(pdf_path):
     pdf_name = pdf_path.stem
 
     # Setup directories
-    images_dir = IMAGES_DIR / pdf_name
-    markdown_dir = MARKDOWN_DIR / pdf_name
-    figures_dir = IMAGES_DIR / pdf_name / "figures"
+    images_dir = IMAGES_DIR / pdf_name  # Temp page images
+    paper_dir = PAPERS_DIR / pdf_name   # Output for agent
+    figures_dir = paper_dir / "figures" # Extracted figures
 
     images_dir.mkdir(parents=True, exist_ok=True)
-    markdown_dir.mkdir(parents=True, exist_ok=True)
+    paper_dir.mkdir(parents=True, exist_ok=True)
     figures_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"{'='*60}")
@@ -267,7 +250,7 @@ async def run_pipeline(pdf_path):
             for (img_path, page_num), (markdown, detected_images) in zip(batch, results):
                 _, num_figs = save_page_markdown(
                     page_num, markdown, detected_images, img_path,
-                    markdown_dir, figures_dir
+                    paper_dir, figures_dir
                 )
                 all_results.append((page_num, markdown, detected_images, img_path))
                 batch_figs += num_figs
@@ -277,7 +260,7 @@ async def run_pipeline(pdf_path):
             print(f"{success}/{len(results)} OK, {batch_figs} figures")
 
     # Save combined file
-    combined = save_combined_markdown(all_results, markdown_dir, figures_dir, pdf_name)
+    combined = save_combined_markdown(all_results, paper_dir, figures_dir, pdf_name)
 
     # Summary
     elapsed = time.time() - start
@@ -293,7 +276,7 @@ async def run_pipeline(pdf_path):
     print(f"Time:       {elapsed:.1f}s ({len(image_paths)/elapsed:.2f} pages/sec)")
     print(f"\nOutput:")
     print(f"  Figures:  {figures_dir}")
-    print(f"  Markdown: {markdown_dir}")
+    print(f"  Markdown: {paper_dir}")
     print(f"  Combined: {combined}")
 
     return all_results

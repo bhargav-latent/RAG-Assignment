@@ -1,0 +1,23 @@
+[project]
+name = "rag-assignment"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "deepagents>=0.3.1",
+    "langchain-openai>=1.1.7",
+    "langgraph>=1.0.5",
+    "langgraph-api>=0.6.24",
+    "langgraph-cli>=0.4.11",
+    "python-dotenv>=1.0.0",
+    # Preprocessing UI
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "python-multipart>=0.0.9",
+    # Preprocessing pipeline
+    "aiohttp>=3.9.0",
+    "pillow>=10.0.0",
+    "pdf2image>=1.17.0",
+    "PyMuPDF>=1.24.0",
+]

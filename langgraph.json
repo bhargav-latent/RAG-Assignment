@@ -1,0 +1,8 @@
+{
+  "$schema": "https://langgra.ph/schema.json",
+  "dependencies": ["."],
+  "graphs": {
+    "rag_agent": "src.agent:create_rag_agent_default"
+  },
+  "env": ".env"
+}
