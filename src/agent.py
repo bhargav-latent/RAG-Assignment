@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Literal
 
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Load environment variables from .env
 load_dotenv(Path(__file__).parent.parent / ".env")
@@ -20,7 +20,7 @@ from .tools import read_images, ReadOnlyBackend
 _PROJECT_ROOT = Path(__file__).parent.parent
 
 
-SYSTEM_PROMPT = """You are a research assistant answering questions about academic papers.
+SYSTEM_PROMPT = """You are a research assistant answering questions about academic papers by staying grounded to the Informatin you get from the tools and do not use you own knowledge
 
 ## Workflow: Map → Search → Understand
 
@@ -68,7 +68,7 @@ class AgentConfig:
 
     papers_dir: str = field(default_factory=lambda: str(_PROJECT_ROOT / "papers"))
     model: str = field(
-        default_factory=lambda: os.getenv("AGENT_MODEL", "Qwen/Qwen3-VL-30B-A3B-Instruct-FP8")
+        default_factory=lambda: os.getenv("AGENT_MODEL", "gemini-3-flash-preview")
     )
     checkpointer: Literal["memory", "sqlite", "postgres"] = "memory"
     sqlite_path: str = "./threads.db"
@@ -117,11 +117,10 @@ def create_rag_agent(config: AgentConfig | None = None):
     # Set PAPERS_ROOT in tools module for read_images path resolution
     tools_module.PAPERS_ROOT = papers_path
 
-    # Initialize model (ChatOpenAI works with vLLM's OpenAI-compatible API)
-    llm = ChatOpenAI(
+    # Initialize Google Gemini model
+    llm = ChatGoogleGenerativeAI(
         model=config.model,
-        base_url=os.getenv("OPENAI_BASE_URL"),
-        api_key=os.getenv("OPENAI_API_KEY", "not-needed"),
+        google_api_key=os.getenv("GOOGLE_API_KEY"),
     )
 
     # Build custom tool list (filesystem tools are built-in to DeepAgents)

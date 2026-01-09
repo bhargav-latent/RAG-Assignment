@@ -5,19 +5,18 @@ import os
 from pathlib import Path
 
 from langchain_core.tools import tool
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
 
 # Will be set by agent.py when agent is created
 PAPERS_ROOT: Path | None = None
 
 
-def get_vision_model() -> ChatOpenAI:
+def get_vision_model() -> ChatGoogleGenerativeAI:
     """Initialize the vision model from environment config."""
-    return ChatOpenAI(
-        model=os.getenv("VLLM_MODEL_NAME", "Qwen/Qwen3-VL-30B-A3B-Instruct-FP8"),
-        base_url=os.getenv("VLLM_BASE_URL", "http://10.26.1.11:8908/v1"),
-        api_key=os.getenv("VLLM_API_KEY", "not-needed"),
+    return ChatGoogleGenerativeAI(
+        model=os.getenv("VISION_MODEL_NAME", "gemini-3-flash-preview"),
+        google_api_key=os.getenv("GOOGLE_API_KEY"),
         max_tokens=4096,
     )
 

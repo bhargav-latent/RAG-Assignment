@@ -1,0 +1,25 @@
+{
+  "id": "latent_q001",
+  "question": "What is the formula for the reverse-time stochastic differential equation used in diffusion models?",
+  "category": "precision",
+  "difficulty": "hard",
+  "ground_truth": "dx_t = [f_t * x_t - ((1 + eta^2) / 2) * g_t^2 * \u2207_{x_t} log p(x_t)] dt + eta * g_t * dw_t, where eta >= 0 is a parameter controlling stochasticity, and the coefficients f_t and g_t are derived from alpha_t and sigma_t.",
+  "source_documents": [
+    "Latent Diffusion Models for Physics Emulation"
+  ],
+  "agent_answer": "The formula for the reverse-time stochastic differential equation (SDE) used in diffusion models is given by:\n\n\\[ \\mathrm{d}x_t = \\left[ f_t x_t - \\frac{1+\\eta^2}{2} g_t^2 \\nabla_{x_t} \\log p(x_t) \\right] \\mathrm{d}t + \\eta g_t \\mathrm{d}w_t \\]\n\nWhere:\n*   **\\(x_t\\)** is the variable (e.g., image or physical state) at time \\(t \\in [0, 1]\\).\n*   **\\(f_t\\) and \\(g_t\\)** are time-dependent drift and diffusion coefficients derived from the noise schedule (specifically from \\(\\alpha_t\\) and \\(\\sigma_t\\)).\n*   **\\(\\nabla_{x_t} \\log p(x_t)\\)** is the **score function**, which points toward regions of higher data density. In practice, this is approximated by a neural network.\n*   **\\(\\eta \\ge 0\\)** is a parameter that controls the level of stochasticity (randomness) during the generation process.\n*   **\\(\\mathrm{d}w_t\\)** represents a standard Wiener process (Brownian motion) in reverse time.\n\nBy solving this equation from \\(t=1\\) (pure noise) to \\(t=0\\) (data), the model can generate samples from the target data distribution \\(p(x)\\).\n\nSources:\n[Latent Diffusion Models for Physics Emulation, page 2 (Eq. 2)]",
+  "correctness_score": 5,
+  "correctness_explanation": "The agent's answer provides the exact formula specified in the ground truth, correctly defines all parameters (eta, f_t, g_t, score function, and Wiener process), and explains the derivation of the coefficients. It is completely correct and detailed.",
+  "groundedness_score": 5,
+  "groundedness_explanation": "The agent's answer is highly grounded. It provides a specific and complex mathematical formula (the reverse-time SDE) and attributes it directly to a specific location in the source documents ([Latent Diffusion Models for Physics Emulation, page 2 (Eq. 2)]). All variables (x_t, f_t, g_t, score function, \u03b7, dw_t) are clearly defined in a way that is consistent with technical literature on diffusion models. The citation is explicit and the information provided is verifiable given the source.",
+  "latency": 12.402020692825317,
+  "tool_calls": 30,
+  "tools_used": [
+    "grep",
+    "read_file",
+    "ls"
+  ],
+  "total_tokens": 30076,
+  "input_tokens": 29547,
+  "output_tokens": 529
+}
