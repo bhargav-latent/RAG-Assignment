@@ -29,139 +29,34 @@ Agent:
 
 ## Architecture
 
-### Why No Vector Database? Why No Chunking?
+This system uses an agentic RAG approach where an LLM agent directly explores documents using filesystem tools.
 
-This system deliberately **avoids traditional vector store and chunking approaches** in favor of **full-page agentic retrieval**. This is not a simplification - it's an architectural decision backed by empirical research and production experience.
+### Approach
 
-#### The Problem with Traditional RAG
+**Full-page retrieval** - Documents are stored as markdown files without chunking to preserve table structures, formulas, and cross-references.
 
-**Chunking destroys context** - When you split a research paper into 512-token chunks:
-- Tables break across chunk boundaries (row-column relationships lost)
-- Formulas get separated from their explanations
-- Multi-step derivations fragment across chunks
-- Citations disconnect from the claims they support
-
-**Vector similarity is too coarse** - Embeddings excel at semantic similarity but struggle with:
-- Exact keyword matching ("What is the VRMSE formula?")
-- Structural queries ("What is in Table 3?")
-- Negation ("Which papers don't use attention?")
-- Precise citations (similarity scores ≠ locations)
-
-#### Production Evidence: LangChain's Experience
-
-LangChain rebuilt their documentation assistant, moving **away from vector embeddings** to an agentic approach:
-
-> *"The original Chat LangChain used vector embeddings and document chunking, which fragmented structured content, required constant reindexing, and produced vague citations. Internal teams preferred manual workflows because they needed something more thorough than just using docs."*
-
-**Their new approach:**
-- Full-page returns via API with iterative refinement
-- Scan titles first, then read selected articles fully
-- Pattern matching (ripgrep) + targeted file reading for code
-
-> *"Rather than reinventing search, the team automated what already worked—observing engineers following a specific pattern and systematizing it."*
-
-**Source:** [Rebuilding Chat LangChain](https://blog.langchain.com/rebuilding-chat-langchain/) (2025)
-
-#### Empirical Performance: Agent-Harness-RAG Benchmark
-
-Controlled study comparing Hybrid RAG (BM25 + Vector Search) vs FileSearch (LLM-controlled agentic retrieval) on 44 questions:
-
-| Metric | Agentic RAG | Hybrid RAG (Vector+BM25) | Delta |
-|--------|-------------|--------------------------|-------|
-| Mean Accuracy | **4.67/5** | 4.20/5 | **+11%** |
-| Perfect Scores | **80%** | 53% | **+27pp** |
-| Median Latency | 58s | 31s | 1.9x slower |
-| Median Tokens | 37,294 | 12,137 | 3.1x more |
-
-**When Agentic RAG excels:**
-- Tables and structured data (iterative extraction)
-- Scattered information requiring multiple searches
-- Semantic disambiguation through refinement
-
-**When Vector RAG wins:**
-- Simple keyword queries
-- Cost-sensitive scenarios
-- High-throughput requirements
-
-**Source:** [Agent-Harness-RAG Benchmark](https://github.com/bhargav-latent/Agent-Harness-RAG)
-
-#### Our Architectural Choice
-
-For research paper Q&A, we prioritize **accuracy and citation quality over cost and latency**. This system achieves:
-
-✅ **High correctness** with perfect median scores (see Evaluation Results below)
-✅ **No chunking loss** - Full tables, formulas, section context preserved
-✅ **Iterative refinement** - Agent searches multiple times to find scattered information
-✅ **Precise citations** - Page numbers with bounding box coordinates
-✅ **No reindexing** - Add papers instantly without embedding regeneration
-
-**Trade-offs accepted:**
-- ⚠️ Higher latency than vector RAG (typical queries: ~40s)
-- ⚠️ Higher token usage (typical queries: ~100K tokens)
-- ⚠️ Custom tooling required (LangGraph agent orchestration)
+**Tool-based exploration** - The agent uses grep for content search, read_file for targeted reading with offset/limit, and read_images for figure analysis.
 
 ### Components
 
 | Component | Technology | Rationale |
 |-----------|-----------|-----------|
-| **PDF Parsing** | NVIDIA Nemotron Parse v1.1 | State-of-the-art structure preservation (93.99% table accuracy) |
-| **Storage** | File System (Markdown) | Full page integrity, no chunking loss |
-| **Retrieval** | LLM-Controlled (Agentic) | Iterative refinement, higher accuracy |
-| **Agent Framework** | LangGraph | Production-grade agent orchestration |
-| **Model** | Google Gemini 3 Flash | Cost-effective with strong reasoning |
+| **PDF Parsing** | NVIDIA Nemotron Parse v1.1 | Structure preservation (93.99% table accuracy) |
+| **Storage** | File System (Markdown) | Full page integrity |
+| **Retrieval** | LLM-Controlled (Agentic) | Iterative refinement |
+| **Agent Framework** | LangGraph | Agent orchestration |
+| **Model** | Google Gemini 3 Flash | Cost-effective reasoning |
 
-**Detailed documentation:** See [docs/RAG_Architecture_Decision_Document.md](docs/RAG_Architecture_Decision_Document.md) for full architectural rationale, empirical evidence, and trade-off analysis.
+See [docs/RAG_Architecture_Decision_Document.md](docs/RAG_Architecture_Decision_Document.md) for detailed architectural analysis.
 
-### PDF Preprocessing: Why It Matters
+### Document Processing
 
-Traditional PDF extractors (PyPDF, pdfplumber) struggle with research papers because they:
-- Break table structures into disconnected text
-- Lose multi-column reading order
-- Strip mathematical formulas
-- Fail to identify figures and captions
-
-This system uses **NVIDIA Nemotron Parse v1.1**, a specialized Vision-Language Model designed for document understanding.
-
-#### Nemotron Parse Capabilities
-
-| Feature | Capability | Impact |
-|---------|-----------|--------|
-| **Semantic Segmentation** | Classifies titles, tables, figures, equations | Agent knows what it's reading |
-| **Reading Order** | Multi-column layouts handled correctly | Coherent text extraction |
-| **Table Extraction** | LaTeX format with 93.99% accuracy | Perfect table preservation |
-| **Formula Support** | Mathematical notation in LaTeX | Formulas remain readable |
-| **Spatial Grounding** | Bounding boxes for all elements | Precise page citations |
-
-#### Example: What Nemotron Parse Preserves
-
-**Input:** Research paper with complex table
-
-**Traditional Parser Output:**
-```
-Self-Attention O(n²·d) O(1) Recurrent O(n·d²) O(n) Convolutional ...
-```
-*Reading order lost, table structure destroyed*
-
-**Nemotron Parse Output:**
-```markdown
-| Layer Type | Complexity per Layer | Sequential Ops |
-|------------|---------------------|----------------|
-| Self-Attention | O(n²·d) | O(1) |
-| Recurrent | O(n·d²) | O(n) |
-| Convolutional | O(n·d²) | O(1) |
-
-[FIGURE: fig_2, bbox: [100, 200, 400, 500]]
-Caption: Scaled Dot-Product Attention mechanism...
-```
-*Structure preserved, spatially grounded, ready for agent consumption*
-
-#### Why This Matters for Accuracy
-
-When tables and formulas are preserved:
-✅ Agent can answer "What is in Table 3?" accurately
-✅ Mathematical notation remains readable for verification
-✅ Cross-references between figures and text stay intact
-✅ Citations can point to exact page locations with bounding boxes
+PDFs are converted to markdown using NVIDIA Nemotron Parse v1.1, which provides:
+- Semantic segmentation (titles, tables, figures, equations)
+- Table extraction in LaTeX format (93.99% accuracy)
+- Mathematical formula preservation
+- Figure detection with bounding boxes
+- Reading order preservation for multi-column layouts
 
 **Technical details:** [NVIDIA Nemotron Parse Paper](https://arxiv.org/abs/2511.20478) | [Model on HuggingFace](https://huggingface.co/nvidia/NVIDIA-Nemotron-Parse-v1.1)
 
@@ -202,96 +97,15 @@ See the full [Evaluation Report](EVALUATION_REPORT.md) for detailed analysis, in
 
 ## How to Use
 
-### Deployment Note
+### Deployment
 
 **Current setup:** Local development with `uv` and LangGraph CLI
 
-**Docker containerization:** Not implemented in this submission due to time constraints, but LangGraph provides first-class Docker support with significant production benefits.
+**Docker support:** LangGraph provides Docker containerization for production deployments. See [LangGraph deployment documentation](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/cloud/deployment/standalone_container.md) for details.
 
-#### What LangGraph Docker Would Provide
+### Platform Compatibility
 
-**Built-in Infrastructure:**
-- **Redis** - Pub-sub broker for streaming real-time agent outputs
-- **PostgreSQL** - Persistent storage for threads, runs, checkpoints, and task queue
-- **Health checks** - Automatic service dependency management
-- **Wolfi-based images** - Smaller, more secure containers ([langgraph-cli>=0.2.11](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/cloud/deployment/custom_docker.md))
-
-**Production Advantages:**
-- **Scalability** - Deploy multiple agent instances behind load balancer
-- **Portability** - Run anywhere (Kubernetes, AWS ECS, Azure Container Instances)
-- **Isolation** - Separate databases per deployment using PostgreSQL schemas
-- **State persistence** - Checkpoint long-running agent executions across restarts
-- **Observability** - Built-in health endpoints (`/ok`) for monitoring
-
-**Implementation Scope:**
-
-Simple deployment via LangGraph CLI:
-```bash
-langgraph build              # Builds Docker image from langgraph.json
-langgraph up                 # Launches API + Redis + PostgreSQL with docker-compose
-```
-
-Or custom deployment:
-```bash
-langgraph dockerfile         # Generate Dockerfile for manual workflows
-docker run --env-file .env -p 8123:8000 my-image
-```
-
-Configuration requires:
-- `langgraph.json` - Define graphs, dependencies, environment
-- `REDIS_URI` - Connection to Redis instance
-- `DATABASE_URI` - PostgreSQL connection string
-- Multi-service orchestration via Docker Compose
-
-**Why deprioritized:** Given assignment timeline, focused on demonstrating core competencies (agentic RAG architecture, evaluation rigor, architectural justification) over operational packaging. The system is architecturally ready for containerization.
-
-**References:**
-- [LangGraph Standalone Container Deployment](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/cloud/deployment/standalone_container.md)
-- [Custom Docker Configuration](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/cloud/deployment/custom_docker.md)
-- [LangGraph CLI Documentation](https://docs.langchain.com/langsmith/cli)
-
-### Cross-Platform Compatibility (Windows/Mac/Linux)
-
-✅ **This project works on Windows, macOS, and Linux** without modification.
-
-#### Path Handling
-
-**Virtual filesystem abstraction** - The agent uses Unix-style paths (`/Paper Name/document.md`) regardless of OS:
-- Agent sees: `ls path: "/"` → `["/Latent_Diffusion/", "/Writing_Effective_Use_Cases/"]`
-- Windows translates to: `C:\Users\...\papers\Latent_Diffusion\`
-- Linux/Mac translates to: `/home/.../papers/Latent_Diffusion/`
-
-**Why it works:**
-1. All filesystem operations use `pathlib.Path` (Python's cross-platform path library)
-2. DeepAgents `FilesystemBackend` with `virtual_mode=True` translates virtual paths to real OS paths automatically
-3. Virtual path `/Paper/document.md` becomes `papers\Paper\document.md` on Windows or `papers/Paper/document.md` on Unix
-
-**Example from source code:**
-```python
-# src/tools.py:122
-super().__init__(root_dir=root_dir, virtual_mode=True)
-
-# DeepAgents backend (filesystem.py:78)
-full = (self.cwd / vpath.lstrip("/")).resolve()  # Works on all OS
-```
-
-**No manual path conversion needed** - The `/` vs `\` difference is handled transparently.
-
-#### Known Platform-Specific Notes
-
-**Windows:**
-- Virtual environment activation: `.venv\Scripts\activate` (backslash)
-- SQLite checkpoint path: `./threads.db` works (relative paths are cross-platform)
-- Evaluation script: May need to install `ripgrep` manually for grep-based search (LangGraph's built-in grep tool should work without it)
-
-**macOS/Linux:**
-- Virtual environment activation: `source .venv/bin/activate` (forward slash)
-- All POSIX tools (grep, find) available by default
-
-**All platforms:**
-- `uv` package manager works identically
-- LangGraph server uses Python's `aiohttp`, which is cross-platform
-- Environment variables via `.env` file (no platform-specific syntax)
+This project runs on Windows, macOS, and Linux. The agent uses a virtual filesystem abstraction (`virtual_mode=True`) that translates Unix-style paths to OS-specific paths automatically via `pathlib.Path`.
 
 ### Prerequisites
 
