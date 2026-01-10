@@ -509,24 +509,6 @@ RAG-Assignment/
 | `glob` | Find files by pattern |
 | `read_images` | Analyze figures with vision model |
 
-## Preprocessing Pipeline
-
-Upload PDFs via the web UI or command line:
-
-```bash
-# Web UI (port 2031)
-cd preprocessing && python server.py
-
-# Command line
-python preprocessing/run.py path/to/paper.pdf
-```
-
-**Pipeline steps:**
-1. Convert PDF to images (300 DPI)
-2. Extract text via NVIDIA Nemotron-Parse
-3. Detect and crop figures from bounding boxes
-4. Generate `document.md` + `figures/`
-
 ## Configuration
 
 ### Environment Variables
