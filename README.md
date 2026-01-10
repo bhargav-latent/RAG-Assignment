@@ -438,27 +438,7 @@ response = client.runs.create(
 )
 ```
 
-### Understanding the Agent Workflow
-
-The agent uses a **Map → Search → Understand** approach:
-
-1. **Map**: Uses `ls` to discover available papers
-2. **Search**: Uses `grep` to find relevant content (returns line numbers)
-3. **Understand**: Uses `read_file` with offset/limit to read specific sections
-4. **Analyze**: Uses `read_images` to understand figures and diagrams
-
-**Example Agent Behavior:**
-```
-User: "What is the attention mechanism?"
-
-Agent:
-  1. ls → discovers "Attention_Is_All_You_Need/"
-  2. grep "attention mechanism" → finds matches at lines 245-260
-  3. read_file(offset=245, limit=20) → reads relevant section
-  4. Responds: "The attention mechanism is... [Attention_Is_All_You_Need, page 3]"
-```
-
-## Architecture
+## System Diagram
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -546,22 +526,6 @@ config = AgentConfig(
     system_prompt=SYSTEM_PROMPT       # Custom instructions
 )
 ```
-
-## Documentation
-
-- [EVALUATION.md](docs/EVALUATION.md) - Evaluation framework and metrics
-- [MODEL_SELECTION.md](docs/MODEL_SELECTION.md) - Model selection guide
-- [AGENTIC_WORKFLOW.md](docs/AGENTIC_WORKFLOW.md) - Tool usage paradigm
-
-## Tech Stack
-
-- **Google Gemini 3 Flash** - Latest LLM with vision capabilities
-- **DeepAgents** - Agent framework with FilesystemBackend
-- **LangGraph** - Agent deployment and state management
-- **LangChain** - LLM integration and tool orchestration
-- **FastAPI** - Preprocessing web UI
-- **NVIDIA Nemotron-Parse** - PDF text/figure extraction
-- **LangSmith** - Observability and tracing
 
 ## Troubleshooting
 
