@@ -9,19 +9,19 @@
 
 ## Evaluation Methodology
 
-### What We're Measuring and Why
+### Metrics
 
 **Correctness (1-5 scale)**
-Measures whether the agent's answer matches the ground truth. This is the primary metric for retrieval accuracy.
+Whether the agent's answer matches the ground truth.
 
 **Groundedness (1-5 scale)**
-Measures whether claims are verifiable from source documents with proper citations. Critical for detecting hallucination.
+Whether claims are verifiable from source documents with proper citations.
 
 **Token Usage**
-Input/output tokens consumed per query. Directly maps to cost ($0.50/1M input, $3.00/1M output).
+Input/output tokens consumed per query. Maps to cost ($0.50/1M input, $3.00/1M output).
 
 **Latency**
-Time from query to complete answer. Indicates user experience and system responsiveness.
+Time from query to complete answer.
 
 ### Statistical Approach
 
@@ -42,7 +42,6 @@ Questions span 3 difficulty levels (easy: 2, medium: 10, hard: 13) and 4 researc
 ### Limitations
 
 **Small dataset:** 25 questions is not statistically significant for production claims.
-**Same judge as answerer:** Gemini evaluating Gemini may introduce bias.
 **Token counting uncertainty:** Message deduplication may undercount streaming overhead.
 
 ---
@@ -83,7 +82,7 @@ Questions span 3 difficulty levels (easy: 2, medium: 10, hard: 13) and 4 researc
 | Latency | 42.2s | 24.6s |
 | Tokens | 144,495 | 65,235 |
 
-**Why it excels:** Targeted keyword searches quickly locate formulas without exhaustive document traversal. Perfect groundedness (12/12) indicates reliable citation practice.
+**Analysis:** Targeted keyword searches quickly locate formulas. Perfect groundedness (12/12) indicates reliable citation practice.
 
 ---
 
@@ -97,7 +96,7 @@ Questions span 3 difficulty levels (easy: 2, medium: 10, hard: 13) and 4 researc
 | Latency | 202.6s | 60.6s |
 | Tokens | 347,464 | 138,580 |
 
-**Why variability is high:** Mean latency (203s) is 3.3x higher than median (61s) due to two outliers requiring 3-20 minutes for exhaustive searches. Iterative retrieval catches scattered information missed by single-pass vector search, but ambiguous questions trigger runaway behavior.
+**Analysis:** Mean latency (203s) is 3.3x higher than median (61s) due to two outliers requiring 3-20 minutes for exhaustive searches. Iterative retrieval catches scattered information but ambiguous questions trigger runaway behavior.
 
 ---
 
@@ -111,16 +110,16 @@ Questions span 3 difficulty levels (easy: 2, medium: 10, hard: 13) and 4 researc
 | Latency | 86.8s | 91.5s |
 | Tokens | 145,938 | 107,269 |
 
-**Critical failure mode:** 1/5 questions showed citation hallucination (G=2/5) - fabricated page numbers exceeding paper length. Resource usage is moderate (similar to precision), but attribution accuracy drops without verification mechanisms.
+**Analysis:** 1/5 questions showed citation hallucination (G=2/5) - fabricated page numbers exceeding paper length. Resource usage is moderate, but attribution accuracy drops without verification mechanisms.
 
 ---
 
-## Conclusion
+## Summary
 
-System achieves 93.6% correctness and 97.6% groundedness across 25 evaluation questions. Performance characteristics:
+The system achieves 93.6% correctness and 97.6% groundedness across 25 evaluation questions:
 
 - **Precision questions:** 98.4% correctness, median 24.6s latency, 65K tokens
 - **Recall questions:** 90% correctness, median 60.6s latency, 139K tokens (with outliers up to 20 minutes)
 - **Cross-document questions:** 88% correctness, median 91.5s latency, 107K tokens (4% hallucination rate)
 
-System validates architectural choice for technical document Q&A requiring high accuracy and citation quality, with acceptable cost (median $0.056 per query) and latency (median 40.7s) for non-real-time applications.
+Median cost per query is $0.056 with 40.7s latency.

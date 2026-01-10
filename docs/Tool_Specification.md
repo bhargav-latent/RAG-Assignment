@@ -1,25 +1,19 @@
-# Tool Specification: Bare DeepAgents + READ_IMAGES
+# Tool Specification
 
 **Date:** January 2026
-**Approach:** Minimal tooling - leverage DeepAgents built-ins, add only what's missing
+**Approach:** DeepAgents built-in tools + custom vision tool
 
 ---
 
-## 1. Philosophy
+## 1. Overview
 
-> Keep it simple. DeepAgents provides battle-tested filesystem tools. We add only one custom tool for image understanding.
-
-**Why minimal?**
-- Less code to maintain
-- Fewer failure points
-- LLM has cleaner tool selection
-- DeepAgents tools mirror Claude Code (production-proven)
+DeepAgents provides filesystem tools. This system adds one custom tool for image understanding.
 
 ---
 
 ## 2. Built-in Tools (DeepAgents FilesystemMiddleware)
 
-These come free with DeepAgents. No implementation needed.
+DeepAgents includes these filesystem tools:
 
 | Tool | Signature | Purpose |
 |------|-----------|---------|
@@ -223,16 +217,11 @@ class VisionMiddleware(AgentMiddleware):
 agent = create_deep_agent(
     system_prompt="""You are a research paper assistant.
 
-You have access to parsed research papers stored as markdown files.
-Each paper directory contains:
-- page_XXX.md files (text content per page)
-- figures/ directory with extracted images
+Papers are stored as markdown files:
+- page_XXX.md (text content per page)
+- figures/ (extracted images)
 
-When answering questions about figures, charts, or visual elements:
-1. First use grep/read_file to find references to the figure
-2. Then use read_images to analyze the actual image file
-
-Always cite your sources: [paper_id, page X] or [paper_id, Figure Y]
+Cite sources as: [paper_id, page X] or [paper_id, Figure Y]
 """,
     backend=FilesystemBackend(root_dir="./papers"),
     middleware=[VisionMiddleware()],

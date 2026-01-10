@@ -1,30 +1,27 @@
-# Agentic Backend Choice: DeepAgents
+# DeepAgents Implementation Guide
 
 **Date:** January 2026
 **Framework:** DeepAgents by LangChain
-**Version:** Latest (via PyPI)
 
 ---
 
-## 1. Why DeepAgents
+## 1. Overview
 
-DeepAgents is a standalone library for building agents that tackle complex, multi-step tasks. Built on LangGraph and inspired by applications like **Claude Code**, **Deep Research**, and **Manus**.
+DeepAgents is a library for building agents that tackle complex, multi-step tasks. Built on LangGraph and used in applications like Claude Code, Deep Research, and Manus.
 
-### Core Philosophy
+### Philosophy
 
 > *"Deep Agents follow a 'trust the LLM' security model—the agent can execute any action permitted by underlying tools. Security boundaries should be enforced at the tool/sandbox layer."*
 
-This aligns perfectly with our Full-Page Agentic RAG approach: give the LLM full control over retrieval, let it iterate and refine.
-
 ---
 
-## 2. Key Features for Our RAG System
+## 2. Key Features
 
 ### 2.1 Built-in FilesystemMiddleware
 
-DeepAgents ships with filesystem tools out of the box:
+DeepAgents provides filesystem tools:
 
-| Tool | Purpose | Our Use Case |
+| Tool | Purpose | RAG Use Case |
 |------|---------|--------------|
 | `grep` | Text search within files | Search across parsed paper pages |
 | `glob` | Pattern-based file discovery | Find papers by pattern `papers/**/*.md` |
@@ -33,14 +30,12 @@ DeepAgents ships with filesystem tools out of the box:
 | `write_file` | Create/overwrite files | Store parsed papers |
 | `edit_file` | Exact string replacements | Update metadata |
 
-**This eliminates the need to build custom search tools from scratch.**
-
 ### 2.2 Pluggable Backends
 
 ```python
 from deepagents.backends import FilesystemBackend
 
-# Point agent at our papers directory
+# Point agent at papers directory
 agent = create_deep_agent(
     backend=FilesystemBackend(root_dir="/path/to/papers")
 )
@@ -48,13 +43,13 @@ agent = create_deep_agent(
 
 Backend options:
 
-| Backend | Description | Our Use |
-|---------|-------------|---------|
-| `FilesystemBackend` | Real disk operations | **Primary** - read parsed papers |
+| Backend | Description | Use |
+|---------|-------------|-----|
+| `FilesystemBackend` | Real disk operations | Read parsed papers |
 | `StateBackend` | Ephemeral in-memory | Scratch space during queries |
-| `CompositeBackend` | Route paths to different backends | Hybrid if needed |
+| `CompositeBackend` | Route paths to different backends | Hybrid storage |
 
-### 2.3 TodoListMiddleware (Planning)
+### 2.3 TodoListMiddleware
 
 Built-in planning for complex queries:
 
@@ -66,11 +61,6 @@ Built-in planning for complex queries:
 # 3. Extract specific information
 # 4. Synthesize answer
 ```
-
-For research paper queries that require:
-- Cross-paper comparison
-- Multi-hop reasoning
-- Iterative refinement
 
 ### 2.4 Sub-Agent Support
 
@@ -87,7 +77,7 @@ table_expert = {
 agent = create_deep_agent(subagents=[table_expert])
 ```
 
-Potential sub-agents for our system:
+Potential sub-agents:
 - **Table Analyzer**: Handle complex table queries
 - **Citation Extractor**: Find and format references
 - **Methodology Expert**: Deep-dive into methods sections
@@ -108,7 +98,6 @@ def search_papers(query: str, scope: str = "all") -> str:
         query: Search term or regex pattern
         scope: 'all', 'abstracts', 'methods', 'results'
     """
-    # Custom implementation
     pass
 
 @tool
@@ -124,7 +113,7 @@ agent = create_deep_agent(middleware=[RAGMiddleware()])
 
 ---
 
-## 3. Architecture with DeepAgents
+## 3. Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -160,18 +149,18 @@ agent = create_deep_agent(middleware=[RAGMiddleware()])
 │                 FilesystemBackend                           │
 │                                                             │
 │   papers/                                                   │
-│   ├── arxiv_2401_12345/                                     │
-│   │   ├── metadata.json                                     │
-│   │   ├── page_001.md                                       │
-│   │   └── ...                                               │
-│   └── ...                                                   │
+│   ├── Paper_Name_1/                                         │
+│   │   ├── document.md                                       │
+│   │   └── figures/                                          │
+│   └── Paper_Name_2/                                         │
+│       └── ...                                               │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. Implementation Blueprint
+## 4. Implementation
 
 ### 4.1 Installation
 
@@ -211,12 +200,10 @@ from deepagents import create_deep_agent
 from deepagents.backends import FilesystemBackend
 from langchain.agents.middleware import AgentMiddleware
 from langchain_core.tools import tool
-import json
 
 @tool
 def list_papers() -> str:
     """List all available research papers with their titles and IDs."""
-    # Returns paper index
     pass
 
 @tool
@@ -283,7 +270,7 @@ agent = create_deep_agent(
 
 ---
 
-## 5. Query Execution Flow
+## 5. Query Execution Example
 
 ```
 User: "What attention mechanism does the Transformer paper propose?"
@@ -305,15 +292,13 @@ User: "What attention mechanism does the Transformer paper propose?"
 │ grep("attention mechanism", "./papers/**/*.md")            │
 │                                                             │
 │ Results:                                                    │
-│ - arxiv_1706_03762/page_003.md: "Scaled Dot-Product..."    │
-│ - arxiv_1706_03762/page_004.md: "Multi-Head Attention..."  │
+│ - Paper_Name/document.md: "Scaled Dot-Product..."          │
 └─────────────────────────┬───────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ Step 3: READ (FilesystemMiddleware.read_file)              │
 │                                                             │
-│ read_file("./papers/arxiv_1706_03762/page_003.md")         │
-│ read_file("./papers/arxiv_1706_03762/page_004.md")         │
+│ read_file("./papers/Paper_Name/document.md")               │
 │                                                             │
 │ → Full page content with tables, equations, figures        │
 └─────────────────────────┬───────────────────────────────────┘
@@ -321,17 +306,7 @@ User: "What attention mechanism does the Transformer paper propose?"
 ┌─────────────────────────────────────────────────────────────┐
 │ Step 4: SYNTHESIZE                                          │
 │                                                             │
-│ Agent formulates answer:                                    │
-│                                                             │
-│ "The Transformer paper proposes two attention mechanisms:   │
-│                                                             │
-│ 1. **Scaled Dot-Product Attention** [page 3]               │
-│    Attention(Q,K,V) = softmax(QK^T/√d_k)V                  │
-│                                                             │
-│ 2. **Multi-Head Attention** [page 4]                       │
-│    Parallel attention layers with different projections    │
-│                                                             │
-│ Citations: [arxiv_1706_03762, pages 3-4]"                  │
+│ Agent formulates answer with citations                      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -376,17 +351,17 @@ agent = create_deep_agent(
 
 ---
 
-## 7. Why DeepAgents Fits Our Requirements
+## 7. Feature Summary
 
-| Requirement | DeepAgents Capability |
-|-------------|----------------------|
-| **Full-page retrieval** | FilesystemBackend + read_file |
-| **No vector store** | Pure filesystem, grep-based search |
-| **Iterative refinement** | LangGraph state machine + planning |
-| **Research paper structure** | Custom middleware for paper-aware tools |
-| **Accurate citations** | Full page context enables precise references |
-| **Complex queries** | Sub-agents for specialized tasks |
-| **Extensibility** | Middleware architecture for custom tools |
+| Feature | Implementation |
+|---------|---------------|
+| Full-page retrieval | FilesystemBackend + read_file |
+| Content search | FilesystemMiddleware grep |
+| Iterative refinement | LangGraph state machine + planning |
+| Paper-specific tools | Custom middleware |
+| Citations | Full page context |
+| Complex queries | Sub-agents |
+| Extensibility | Middleware architecture |
 
 ---
 
@@ -400,4 +375,4 @@ agent = create_deep_agent(
 
 ---
 
-*Document prepared for architectural alignment before implementation.*
+*Implementation guide for RAG Assignment - January 2026*

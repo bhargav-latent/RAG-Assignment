@@ -157,20 +157,18 @@ evaluation/results/
 
 ---
 
-## Expected Performance by Category
+## Performance Targets by Category
 
-Based on evaluation of similar agentic RAG systems:
-
-| Category | Expected Score | Notes |
-|----------|---------------|-------|
-| Formulas | 4.5-5.0 | Agent excels with grep patterns |
-| Table Data | 4.5-5.0 | Tool-based navigation helps |
-| Exact Match | 4.0-4.5 | Straightforward retrieval |
-| Semantic | 4.0-4.5 | Good with agentic exploration |
+| Category | Target Score | Notes |
+|----------|-------------|-------|
+| Formulas | 4.5-5.0 | High precision expected |
+| Table Data | 4.5-5.0 | Structured content |
+| Exact Match | 4.0-4.5 | Direct retrieval |
+| Semantic | 4.0-4.5 | Iterative refinement possible |
 | Figures | 4.0-4.5 | Depends on vision model quality |
-| Multi-hop | 3.5-4.0 | Requires multiple tool calls |
-| Contextual | 3.0-4.0 | Known challenge |
-| Negation | 3.0-3.5 | Known challenge |
+| Multi-hop | 3.5-4.0 | Multiple retrieval steps required |
+| Contextual | 3.0-4.0 | Disambiguation challenging |
+| Negation | 3.0-3.5 | Exhaustive search required |
 
 ---
 

@@ -1,16 +1,16 @@
-# Agentic AI Tool Usage: The New Paradigm
+# Agentic Tool Usage
 
-A practical guide to how modern AI coding agents approach software engineering tasks.
+A practical guide to tool usage patterns for AI agents.
 
 ---
 
 ## Core Principle: Structured Discovery Before Action
 
-The fundamental shift in agentic AI is moving from **imperative commands** to **declarative goals** with autonomous tool orchestration.
+Agents translate natural language goals into tool sequences:
 
 ```
-Old: "grep -r 'error' src/ | head -20"
-New: "Find where errors are handled" → Agent selects tools, iterates, synthesizes
+Traditional: "grep -r 'error' src/ | head -20"
+Agentic: "Find where errors are handled" → Agent selects tools, iterates, synthesizes
 ```
 
 ---
@@ -151,17 +151,17 @@ Agent Workflow:
 
 ---
 
-## Key Insight
+## Summary
 
-The new paradigm treats the AI agent as an **autonomous researcher** with a toolkit, not a command executor. The agent:
+Agents operate as autonomous tools users:
 
-1. **Understands intent** from natural language
-2. **Selects appropriate tools** based on the task
-3. **Iterates** until sufficient information is gathered
-4. **Synthesizes** findings into actionable output
+1. Understand intent from natural language
+2. Select appropriate tools based on the task
+3. Iterate until sufficient information is gathered
+4. Synthesize findings into output
 
-This inverts the traditional CLI model: instead of users composing tool pipelines, the agent composes them dynamically based on goals.
+The agent composes tool pipelines dynamically based on goals rather than receiving explicit commands.
 
 ---
 
-*Generated for the RAG Assignment project - January 2026*
+*RAG Assignment - January 2026*
