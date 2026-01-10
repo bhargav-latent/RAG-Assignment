@@ -17,6 +17,16 @@ Agent:
   4. Respond with citation
 ```
 
+## Tools Available to Agent
+
+| Tool | Purpose |
+|------|---------|
+| `ls` | List paper directories |
+| `grep` | Search content (returns line numbers) |
+| `read_file` | Read content with offset/limit |
+| `glob` | Find files by pattern |
+| `read_images` | Analyze figures with vision model |
+
 ## Architecture
 
 ### Why No Vector Database? Why No Chunking?
@@ -79,15 +89,15 @@ Controlled study comparing Hybrid RAG (BM25 + Vector Search) vs FileSearch (LLM-
 
 For research paper Q&A, we prioritize **accuracy and citation quality over cost and latency**. This system achieves:
 
-✅ **93.6% correctness** (mean), **perfect median scores (5/5)**
+✅ **High correctness** with perfect median scores (see Evaluation Results below)
 ✅ **No chunking loss** - Full tables, formulas, section context preserved
 ✅ **Iterative refinement** - Agent searches multiple times to find scattered information
 ✅ **Precise citations** - Page numbers with bounding box coordinates
 ✅ **No reindexing** - Add papers instantly without embedding regeneration
 
 **Trade-offs accepted:**
-- ⚠️ Median latency: 40.7s (vs ~30s for vector RAG)
-- ⚠️ Median tokens: 99K (vs ~12K for vector RAG)
+- ⚠️ Higher latency than vector RAG (typical queries: ~40s)
+- ⚠️ Higher token usage (typical queries: ~100K tokens)
 - ⚠️ Custom tooling required (LangGraph agent orchestration)
 
 ### Components
@@ -154,15 +164,6 @@ When tables and formulas are preserved:
 ✅ Citations can point to exact page locations with bounding boxes
 
 **Technical details:** [NVIDIA Nemotron Parse Paper](https://arxiv.org/abs/2511.20478) | [Model on HuggingFace](https://huggingface.co/nvidia/NVIDIA-Nemotron-Parse-v1.1)
-
-## Features
-
-- **Agentic RAG** - Tool-based document exploration (not vector search)
-- **Vision support** - Analyze figures, charts, and diagrams
-- **PDF preprocessing** - Extract text and figures via NVIDIA Nemotron-Parse
-- **Web UI** - Drag-and-drop PDF upload with progress tracking
-- **LangSmith observability** - Full tracing of agent behavior
-- **Comprehensive Evaluation** - LLM-as-judge framework with 25 grounded questions
 
 ## Evaluation Results
 
@@ -478,16 +479,6 @@ RAG-Assignment/
 ├── langgraph.json        # LangGraph deployment config
 └── pyproject.toml        # Dependencies
 ```
-
-## Tools Available to Agent
-
-| Tool | Purpose |
-|------|---------|
-| `ls` | List paper directories |
-| `grep` | Search content (returns line numbers) |
-| `read_file` | Read content with offset/limit |
-| `glob` | Find files by pattern |
-| `read_images` | Analyze figures with vision model |
 
 ## Configuration
 
