@@ -37,6 +37,32 @@ This system uses an agentic RAG approach where an LLM agent directly explores do
 
 **Tool-based exploration** - The agent uses grep for content search, read_file for targeted reading with offset/limit, and read_images for figure analysis.
 
+### Agent Harness
+
+An **agent harness** is the execution framework that connects an LLM to an environment with tools, state management, and safety boundaries.
+
+**DeepAgents** serves as the agent harness for this system, providing:
+- **Filesystem tools** - grep, read_file, glob, ls (built-in)
+- **Sandboxed environment** - ReadOnlyBackend restricts agent to read-only operations
+- **State management** - LangGraph checkpointing for conversation persistence
+- **Tool abstraction** - Virtual filesystem paths, standardized tool interfaces
+
+**Comparison with other agent harnesses:**
+
+| Agent Harness | Environment | Primary Use Case | Safety Model |
+|---------------|-------------|------------------|--------------|
+| **DeepAgents** | Filesystem | Document exploration, coding | Sandboxed backends |
+| Claude Code | Terminal + Files | Software engineering | Approval workflows |
+| SWE-Agent | Git + Shell | Issue resolution | Containerized execution |
+| OpenAI Codex | Interpreter | Code generation | Isolated runtime |
+| Agent-Harness-RAG | Documents | RAG benchmarking | Read-only access |
+
+**Why agent harnesses matter:**
+- **Reproducible benchmarks** - Standardized tool interfaces enable fair comparisons
+- **Safety enforcement** - Prevent destructive operations (e.g., ReadOnlyBackend)
+- **Tool reuse** - Built-in tools (grep, read) shared across agents
+- **State persistence** - Checkpointing enables multi-turn conversations
+
 ### Components
 
 | Component | Technology | Rationale |

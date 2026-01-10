@@ -152,7 +152,101 @@ Caption: Scaled Dot-Product Attention mechanism...
 
 ---
 
-## 4. Architecture Characteristics
+## 4. Agent Harness: DeepAgents
+
+### What is an Agent Harness?
+
+An **agent harness** is the execution framework that enables LLMs to interact with environments through:
+- **Tool provisioning** - Standardized actions the agent can invoke
+- **Environment abstraction** - Filesystem, APIs, databases, shells
+- **Safety enforcement** - Sandboxing, permission controls, resource limits
+- **State management** - Conversation persistence, checkpointing
+- **Observability** - Logging, tracing, monitoring
+
+### DeepAgents as the Agent Harness
+
+DeepAgents provides the infrastructure for this RAG system:
+
+**Built-in capabilities:**
+- Filesystem tools (grep, read_file, glob, ls, write_file, edit_file)
+- Multiple backend types (FilesystemBackend, StateBackend, CompositeBackend)
+- Virtual filesystem mode (platform-independent paths)
+- Integration with LangGraph (state graphs, checkpointing)
+- Tool middleware system (custom tool injection)
+
+**Safety implementation:**
+```python
+# ReadOnlyBackend prevents destructive operations
+backend = ReadOnlyBackend(root_dir="/path/to/papers")
+# Agent can read, search, glob - but cannot write, edit, delete
+```
+
+**State management:**
+```python
+# LangGraph checkpointing for multi-turn conversations
+checkpointer = MemorySaver()  # or SqliteSaver, PostgresSaver
+agent = create_deep_agent(backend=backend, checkpointer=checkpointer)
+```
+
+### Comparison with Other Agent Harnesses
+
+| Agent Harness | Tools Provided | Safety Model | Use Case |
+|---------------|----------------|--------------|----------|
+| **DeepAgents** | Filesystem, custom | Sandboxed backends | Document exploration, coding |
+| **Claude Code** | Terminal, files, git | Human approval for writes | Software engineering |
+| **SWE-Agent** | Git, shell, editor | Docker containers | GitHub issue resolution |
+| **OpenAI Codex** | Python interpreter | Isolated runtime | Code generation/execution |
+| **Agent-Harness-RAG** | Document tools | Read-only | RAG benchmarking |
+| **LangChain Agents** | Configurable | Tool-level validation | General purpose |
+
+### Role in Benchmarking
+
+Agent harnesses enable **reproducible benchmarks** by:
+
+1. **Standardized interfaces** - All agents use same tool signatures (grep, read_file)
+2. **Controlled environments** - Identical filesystem structure across runs
+3. **Fair comparisons** - Same tools available to different models
+4. **Safety guarantees** - Read-only prevents benchmark contamination
+
+**Example: Agent-Harness-RAG benchmark**
+- 44 questions on 3-document corpus
+- All agents get same tools: search, read_page, list_papers
+- Enables comparison: Hybrid RAG vs Agentic FileSearch
+- Results: Agentic 4.67/5 vs Hybrid 4.20/5 (11% improvement)
+
+### Implementation in This System
+
+```python
+from deepagents import create_deep_agent
+from deepagents.backends import FilesystemBackend
+
+# Custom read-only backend for safety
+class ReadOnlyBackend(FilesystemBackend):
+    """Filesystem backend that prevents writes."""
+    def write_file(self, path, content):
+        raise PermissionError("Write operations disabled")
+    def edit_file(self, path, old, new):
+        raise PermissionError("Edit operations disabled")
+
+# Create agent with read-only harness
+backend = ReadOnlyBackend(root_dir="./papers", virtual_mode=True)
+agent = create_deep_agent(
+    backend=backend,
+    tools=[read_images],  # Add custom vision tool
+    checkpointer=MemorySaver(),
+)
+```
+
+**Benefits for this system:**
+- Agent cannot modify source documents (read-only safety)
+- Virtual paths work on Windows/Mac/Linux
+- Built-in tools (grep, read) are production-tested
+- Checkpointing enables conversation history
+- Easy to extend with custom tools (read_images)
+
+---
+
+## 5. Architecture Characteristics
 
 ### Full-Page Storage
 
@@ -218,7 +312,7 @@ Based on evaluation with 25 questions across 4 papers:
 
 ---
 
-## 5. Implementation
+## 6. Implementation
 
 ### Phase 1: Document Processing
 
@@ -243,7 +337,7 @@ Based on evaluation with 25 questions across 4 papers:
 
 ---
 
-## 6. Known Limitations
+## 7. Known Limitations
 
 **Runaway behavior:** Complex or ambiguous queries can trigger excessive iteration (observed: up to 1.5M tokens).
 - Mitigation: Token budgets and iteration limits
@@ -259,7 +353,7 @@ Based on evaluation with 25 questions across 4 papers:
 
 ---
 
-## 7. References
+## 8. References
 
 1. **NVIDIA Nemotron Parse v1.1 Paper**
    https://arxiv.org/abs/2511.20478
