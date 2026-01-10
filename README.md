@@ -44,7 +44,7 @@ This system uses an agentic RAG approach where an LLM agent directly explores do
 | **PDF Parsing** | NVIDIA Nemotron Parse v1.1 | Structure preservation (93.99% table accuracy) |
 | **Storage** | File System (Markdown) | Full page integrity |
 | **Retrieval** | LLM-Controlled (Agentic) | Iterative refinement |
-| **Agent Framework** | LangGraph | Agent orchestration |
+| **Agent Framework** | DeepAgents | Agent orchestration with filesystem tools |
 | **Model** | Google Gemini 3 Flash | Cost-effective reasoning |
 
 See [docs/RAG_Architecture_Decision_Document.md](docs/RAG_Architecture_Decision_Document.md) for detailed architectural analysis.
@@ -99,9 +99,11 @@ See the full [Evaluation Report](EVALUATION_REPORT.md) for detailed analysis, in
 
 ### Deployment
 
-**Current setup:** Local development with `uv` and LangGraph CLI
+**Agent framework:** DeepAgents (creates LangGraph graphs under the hood)
 
-**Docker support:** LangGraph provides Docker containerization for production deployments. See [LangGraph deployment documentation](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/cloud/deployment/standalone_container.md) for details.
+**Deployment:** LangGraph CLI for local development (`langgraph dev`)
+
+**Docker support:** LangGraph provides Docker containerization for production. See [deployment documentation](https://github.com/langchain-ai/langgraph/blob/main/docs/docs/cloud/deployment/standalone_container.md) for details.
 
 ### Platform Compatibility
 
@@ -201,7 +203,7 @@ papers/
 ### Step 4: Start the RAG Agent Server
 
 ```bash
-# Start LangGraph server on port 2030
+# Start agent server on port 2030 (DeepAgents agent deployed via LangGraph)
 langgraph dev --port 2030
 
 # You should see:
@@ -361,7 +363,7 @@ source ~/.cargo/env  # Reload shell
 - Check PDF is not password-protected or corrupted
 - Verify you have `poppler-utils` installed for PDF conversion
 
-**Issue: LangGraph server won't start**
+**Issue: Agent server won't start (`langgraph dev` fails)**
 - Check port 2030 is not in use: `lsof -i :2030`
 - Verify all dependencies installed: `uv sync`
 - Check `.env` file exists and has `GOOGLE_API_KEY`

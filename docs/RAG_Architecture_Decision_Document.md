@@ -16,7 +16,7 @@ This system implements an agentic RAG approach where an LLM agent explores docum
 | **PDF Parsing** | NVIDIA Nemotron Parse v1.1 | Document structure extraction |
 | **Storage** | File System (Markdown) | Document storage |
 | **Retrieval** | LLM-Controlled (Agentic) | Content discovery and extraction |
-| **Agent Framework** | LangGraph | Agent orchestration |
+| **Agent Framework** | DeepAgents | Agent orchestration with filesystem tools |
 | **Model** | Google Gemini 3 Flash | Query understanding and synthesis |
 
 ---
@@ -229,8 +229,8 @@ Based on evaluation with 25 questions across 4 papers:
 
 ### Phase 2: Agent System
 
-1. Implement agent tools (grep, read_file, glob, read_images)
-2. Set up LangGraph for agent orchestration
+1. Implement custom tools (read_images for vision)
+2. Set up DeepAgents with ReadOnlyBackend
 3. Configure iteration limits and token budgets
 4. Build citation extraction system
 
@@ -270,8 +270,8 @@ Based on evaluation with 25 questions across 4 papers:
 3. **NVIDIA Technical Blog**
    https://developer.nvidia.com/blog/turn-complex-documents-into-usable-data-with-vlm-nvidia-nemotron-parse-1-1/
 
-4. **LangGraph Documentation**
-   https://github.com/langchain-ai/langgraph
+4. **DeepAgents Documentation**
+   https://github.com/langchain-ai/deepagents
 
 5. **Agent-Harness-RAG Benchmark**
    https://github.com/bhargav-latent/Agent-Harness-RAG
