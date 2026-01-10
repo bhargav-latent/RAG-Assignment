@@ -53,9 +53,14 @@ An **agent harness** is the execution framework that connects an LLM to an envir
 |---------------|-------------|------------------|--------------|
 | **DeepAgents** | Filesystem | Document exploration, coding | Sandboxed backends |
 | Claude Code | Terminal + Files | Software engineering | Approval workflows |
-| SWE-Agent | Git + Shell | Issue resolution | Containerized execution |
-| OpenAI Codex | Interpreter | Code generation | Isolated runtime |
-| Agent-Harness-RAG | Documents | RAG benchmarking | Read-only access |
+| SWE-Agent | Git + Shell | GitHub issue resolution | Containerized execution |
+| Devin | Terminal + Browser | Software development | Cloud sandbox |
+
+**Agent benchmarks for measuring performance:**
+- **SWE-Bench** - GitHub issue resolution (standard for coding agents)
+- **Agent-Harness-RAG** - RAG retrieval comparison (validates this approach)
+- **HumanEval** - Code generation
+- **GAIA** - General AI assistant tasks
 
 **Why agent harnesses matter:**
 - **Reproducible benchmarks** - Standardized tool interfaces enable fair comparisons

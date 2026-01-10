@@ -195,24 +195,29 @@ agent = create_deep_agent(backend=backend, checkpointer=checkpointer)
 | **DeepAgents** | Filesystem, custom | Sandboxed backends | Document exploration, coding |
 | **Claude Code** | Terminal, files, git | Human approval for writes | Software engineering |
 | **SWE-Agent** | Git, shell, editor | Docker containers | GitHub issue resolution |
-| **OpenAI Codex** | Python interpreter | Isolated runtime | Code generation/execution |
-| **Agent-Harness-RAG** | Document tools | Read-only | RAG benchmarking |
-| **LangChain Agents** | Configurable | Tool-level validation | General purpose |
+| **Devin** | Terminal, browser, shell | Cloud sandbox | Software development |
 
-### Role in Benchmarking
+### Agent Benchmarks
 
-Agent harnesses enable **reproducible benchmarks** by:
+**Benchmarks for measuring agentic performance:**
 
-1. **Standardized interfaces** - All agents use same tool signatures (grep, read_file)
-2. **Controlled environments** - Identical filesystem structure across runs
-3. **Fair comparisons** - Same tools available to different models
-4. **Safety guarantees** - Read-only prevents benchmark contamination
+| Benchmark | Domain | Purpose | Key Metric |
+|-----------|--------|---------|------------|
+| **SWE-Bench** | Software engineering | GitHub issue resolution | % issues resolved |
+| **Agent-Harness-RAG** | Document retrieval | RAG approach comparison | Correctness score |
+| **HumanEval** | Code generation | Function implementation | Pass@k rate |
+| **GAIA** | General tasks | Multi-modal assistant evaluation | Task completion |
 
-**Example: Agent-Harness-RAG benchmark**
+**Agent-Harness-RAG benchmark** (used to validate this approach):
 - 44 questions on 3-document corpus
-- All agents get same tools: search, read_page, list_papers
-- Enables comparison: Hybrid RAG vs Agentic FileSearch
+- Same tools for all agents: search, read_page, list_papers
+- Comparison: Hybrid RAG vs Agentic FileSearch
 - Results: Agentic 4.67/5 vs Hybrid 4.20/5 (11% improvement)
+
+Agent harnesses enable fair benchmark comparisons through:
+- **Standardized interfaces** - All agents use same tool signatures
+- **Controlled environments** - Identical filesystem structure across runs
+- **Safety guarantees** - Read-only prevents benchmark contamination
 
 ### Implementation in This System
 
