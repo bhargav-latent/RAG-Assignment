@@ -42,7 +42,6 @@ Questions span 3 difficulty levels (easy: 2, medium: 10, hard: 13) and 4 researc
 ### Limitations
 
 **Small dataset:** 25 questions is not statistically significant for production claims.
-**Same judge as answerer:** Gemini evaluating Gemini may introduce bias.
 **Token counting uncertainty:** Message deduplication may undercount streaming overhead.
 
 ---
